@@ -1,16 +1,46 @@
 import marimo
 
-__generated_with = "0.17.0"
+__generated_with = "0.17.8"
 app = marimo.App(width="medium", app_title="ConCReTE Model Building")
 
-@app.cell(hide_code = True)
+
+@app.cell
+def _():
+    import micropip
+    return (micropip,)
+
+
+@app.cell
+async def _(micropip):
+    await micropip.install("groq")
+    import groq
+    return
+
+
+@app.cell
+def _():
+    import marimo as mo
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
+    from sklearn.metrics import mean_squared_error, root_mean_squared_error
+    return LinearRegression, mo, pd, root_mean_squared_error
+
+
+@app.cell
+def _(mo):
+    get_intro_dialog_loaded, set_intro_dialog_loaded = mo.state(False)
+    return get_intro_dialog_loaded, set_intro_dialog_loaded
+
+
+@app.cell(hide_code=True)
 def _(mo):
     input_key = mo.ui.text(label="Groq AI API key", kind="password")
     input_key
-    return input_key
+    return (input_key,)
+
 
 @app.cell(hide_code=True)
-def _(mo, input_key):
+def _(input_key, mo, set_intro_dialog_loaded):
     context = """
         # **ConCReTE: City of Pittsburgh Module**
         ---
@@ -67,15 +97,17 @@ def _(mo, input_key):
            api_key=input_key.value,
        ),
     )
-
+    set_intro_dialog_loaded(True)
     mo.vstack([mo.md(context), mo.vstack([mo.md(rdso_1), reactive_chat]).callout()])
     return rdso_2, rdso_3, reactive_chat
 
 
 @app.cell(hide_code=True)
-def _(mo, pd):
+def _(pd):
     # create data path
-    data_path = mo.notebook_location() / "public" / "data" / "all_extracted_data.csv"
+    data_host = "https://rds-concrete.com/data"
+
+    data_path = f"{data_host}/all_extracted_data.csv"
     # load the data
     pgh_revenue_data = pd.read_csv(data_path)
     # create a new column that is the year and quarter combined
@@ -133,9 +165,10 @@ def _(mo, pgh_revenue_data, revenue_selector):
     return (revenues,)
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""Now you need to select features for the statistical models. These features will be the inputs to to your modeling function. We are doing a [time-series analysis](https://www.geeksforgeeks.org/machine-learning/time-series-analysis-and-forecasting/) so our features are [lagged values.](https://www.geeksforgeeks.org/machine-learning/what-is-lag-in-time-series-forecasting/) Use the slider below to select how much lag we should lag our features.""")
+@app.cell
+def _(get_intro_dialog_loaded, mo):
+    mo.stop(not get_intro_dialog_loaded())
+    mo.md(f"""Now you need to select features for the statistical models. These features will be the inputs to to your modeling function. We are doing a [time-series analysis](https://www.geeksforgeeks.org/machine-learning/time-series-analysis-and-forecasting/) so our features are [lagged values.](https://www.geeksforgeeks.org/machine-learning/what-is-lag-in-time-series-forecasting/) Use the slider below to select how much lag we should lag our features.""")
     return
 
 
@@ -153,9 +186,10 @@ def _(lag_amount, revenues):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""Notice the [missing values](https://www.geeksforgeeks.org/python/how-to-deal-with-missing-values-in-a-timeseries-in-python/) as you increase the lag. Also note, depending on which extraction method column you selected there are missing values as well. Do you want to clean the data and remove rows with missing values?""")
+@app.cell
+def _(get_intro_dialog_loaded, mo):
+    mo.stop(not get_intro_dialog_loaded())
+    mo.md(f"""Notice the [missing values](https://www.geeksforgeeks.org/python/how-to-deal-with-missing-values-in-a-timeseries-in-python/) as you increase the lag. Also note, depending on which extraction method column you selected there are missing values as well. Do you want to clean the data and remove rows with missing values?""")
     return
 
 
@@ -188,15 +222,13 @@ def _(lag_amount, remove_missing, revenues):
 
 @app.cell(hide_code=True)
 def _(mo, training_percent):
-    mo.md(
-        f"""
+    mo.md(f"""
     What percentage of the data do you want to use for [training?](https://www.geeksforgeeks.org/python/training-data-vs-testing-data/#what-is-training-data?)
 
     {training_percent}
 
     You have selected {training_percent.value * 100}% of the data for training.
-    """
-    )
+    """)
     return
 
 
@@ -222,18 +254,15 @@ def _(mo, x_test, x_train, y_test, y_train):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(
-        r"""
-    ---
-    ## **Forecasting Model Implementation**
-
-    Now you have everything you need to generate the model. As you've made your selections, Marimo has been building the model dynamically behind the scenes. Below are your results alongside a dashboard where you can adjust all parameters in one place if you'd like to make changes.
-
-    ---
-    """
-    )
+@app.cell
+def _(get_intro_dialog_loaded, mo):
+    mo.stop(not get_intro_dialog_loaded())
+    mo.vstack([
+        mo.md("---"),
+        mo.md(f"""## **Forecasting Model Implementation**
+    Now you have everything you need to generate the model. As you've made your selections, Marimo has been building the model dynamically behind the scenes. Below are your results alongside a dashboard where you can adjust all parameters in one place if you'd like to make changes."""),
+        mo.md("---")
+    ])
     return
 
 
@@ -286,8 +315,7 @@ def _(
 
 @app.cell(hide_code=True)
 def _(lag_amount, mo, remove_missing, revenue_selector, training_percent):
-    mo.md(
-        f"""
+    mo.md(f"""
     ## Adjust your selections
 
     Play with the options again and see how the statistical performance changes.
@@ -295,20 +323,16 @@ def _(lag_amount, mo, remove_missing, revenue_selector, training_percent):
     What combination of choices are most accurate?
 
     {mo.hstack([revenue_selector, mo.vstack([remove_missing,lag_amount,training_percent])], justify="start", gap=5)}
-    """
-    )
+    """)
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(
-        f"""
-    ## Communicating Results
+@app.cell
+def _(get_intro_dialog_loaded, mo):
+    mo.stop(not get_intro_dialog_loaded())
+    mo.md(f"""## Communicating Results
 
-    You now have a predictive model for the city's revenue. How would you communicate these results back to Chris?
-    """
-    )
+    You now have a predictive model for the city's revenue. How would you communicate these results back to Chris?""")
     return
 
 
@@ -330,15 +354,6 @@ def _(mo, remove_missing, revenue_selector):
 def _(mo, rdso_3, reactive_chat):
     mo.vstack([mo.md(rdso_3), reactive_chat]).callout()
     return
-
-
-@app.cell
-def _():
-    import marimo as mo
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import mean_squared_error, root_mean_squared_error
-    return LinearRegression, mo, pd, root_mean_squared_error
 
 
 @app.cell
