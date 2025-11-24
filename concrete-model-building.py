@@ -103,7 +103,7 @@ def _(input_key, mo, set_intro_dialog_loaded):
     return rdso_2, rdso_3, reactive_chat
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo, pl):
     # create data path
     # data_host = "https://rds-concrete.com/data"
@@ -118,15 +118,29 @@ def _(mo, pl):
     data_2 = notebook_location / "public" / "all_extracted_data.csv"
     data_3 = notebook_location / "new_data" / "all_extracted_data.csv"
 
-    read_in_1 = pl.read_csv(str(data_1))
-    read_in_2 = pl.read_csv(str(data_2))
-    read_in_3 = pl.read_csv(str(data_3))
+    try: 
+        read_in_1 = pl.read_csv(str(data_1))
+    except: 
+        read_in_1 = None
+
+    try: 
+        read_in_2 = pl.read_csv(str(data_2))
+    except:
+        read_in_2 = None
+
+    try:
+        read_in_3 = pl.read_csv(str(data_3))
+    except: 
+        read_in_3 = None
 
     new_files = [read_in_1, read_in_2, read_in_3]
 
-    for item in new_files: 
-        if len(item)>0: 
-            print("at least one worked!")
+    for x in range(len(new_files)):
+        filename = f'read_in_{x}'
+        item = new_files[x]
+        if item is not None:
+            if len(item)>0: 
+                print("at least one worked!")
 
     # create a new column that is the year and quarter combined
     # pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
