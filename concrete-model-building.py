@@ -14,6 +14,8 @@ def _():
 async def _(micropip):
     await micropip.install("groq")
     await micropip.install("pyarrow")
+    await micropip.install("folium")
+    await micropip.install("mapclassify")
     import groq
     return
 
@@ -23,9 +25,38 @@ def _():
     import marimo as mo
     import polars as pl
     import pandas as pd
+    import geopandas as gp
+    import csv
+    import json
     from sklearn.linear_model import LinearRegression
     from sklearn.metrics import mean_squared_error, root_mean_squared_error
-    return LinearRegression, mo, pl, root_mean_squared_error
+    return LinearRegression, csv, gp, json, mo, pd, pl, root_mean_squared_error
+
+
+@app.cell
+def _(csv, data_1, pd):
+    with open(data_1, 'r') as f: 
+        csv_attempt = [row for row in csv.DictReader(f)]
+
+    cs_attempt_df = pd.DataFrame(csv_attempt)
+    cs_attempt_df
+    return
+
+
+@app.cell
+def _(gp, json):
+    with open("public/data/oakland_parcels.geojson") as n: 
+        oakland_attempt = json.loads(n.read())
+
+    oakland_gp_attempt = gp.GeoDataFrame.from_features(oakland_attempt['features'])
+    oakland_gp_attempt
+    return (oakland_gp_attempt,)
+
+
+@app.cell
+def _(oakland_gp_attempt):
+    oakland_gp_attempt.explore()
+    return
 
 
 @app.cell
@@ -148,7 +179,7 @@ def _(mo, pl):
 
     # create a new column that is the year and quarter combined
     pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
-    return (pgh_revenue_data,)
+    return data_1, pgh_revenue_data
 
 
 @app.cell(hide_code=True)
