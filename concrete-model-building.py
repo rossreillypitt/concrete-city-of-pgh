@@ -35,7 +35,7 @@ def _():
 
 @app.cell
 def _(csv, data_1, pd):
-    with open(data_1, 'r') as f: 
+    with open(str(data_1), 'r') as f:
         csv_attempt = [row for row in csv.DictReader(f)]
 
     cs_attempt_df = pd.DataFrame(csv_attempt)
@@ -45,7 +45,8 @@ def _(csv, data_1, pd):
 
 @app.cell
 def _(gp, json):
-    with open("public/data/oakland_parcels.geojson") as n: 
+    oakland_geojson_loc = str(mo.notebook_location() / "public" / "data" / "oakland_parcels.geojson")
+    with open(oakland_geojson_loc, 'r') as n:
         oakland_attempt = json.loads(n.read())
 
     oakland_gp_attempt = gp.GeoDataFrame.from_features(oakland_attempt['features'])
