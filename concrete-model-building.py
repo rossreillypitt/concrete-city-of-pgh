@@ -13,6 +13,7 @@ def _():
 @app.cell
 async def _(micropip):
     await micropip.install("groq")
+    await micropip.install("pyarrow")
     import groq
     return
 
