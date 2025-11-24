@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.8"
+__generated_with = "0.18.0"
 app = marimo.App(width="medium", app_title="ConCReTE Model Building")
 
 
@@ -20,10 +20,11 @@ async def _(micropip):
 @app.cell
 def _():
     import marimo as mo
+    import polars as pl
     import pandas as pd
     from sklearn.linear_model import LinearRegression
     from sklearn.metrics import mean_squared_error, root_mean_squared_error
-    return LinearRegression, mo, pd, root_mean_squared_error
+    return LinearRegression, mo, pl, root_mean_squared_error
 
 
 @app.cell
@@ -103,16 +104,33 @@ def _(input_key, mo, set_intro_dialog_loaded):
 
 
 @app.cell(hide_code=True)
-def _(pd):
+def _(mo, pl):
     # create data path
-    data_host = "https://rds-concrete.com/data"
+    # data_host = "https://rds-concrete.com/data"
 
-    data_path = f"{data_host}/all_extracted_data.csv"
-    # load the data
-    pgh_revenue_data = pd.read_csv(data_path)
+    # data_path = f"{data_host}/all_extracted_data.csv"
+    # # load the data
+    # pgh_revenue_data = pd.read_csv(data_path)
+
+    notebook_location = mo.notebook_location()
+
+    data_1 = notebook_location / "public" / "data" / "all_extracted_data.csv"
+    data_2 = notebook_location / "public" / "all_extracted_data.csv"
+    data_3 = notebook_location / "new_data" / "all_extracted_data.csv"
+
+    read_in_1 = pl.read_csv(str(data_1))
+    read_in_2 = pl.read_csv(str(data_2))
+    read_in_3 = pl.read_csv(str(data_3))
+
+    new_files = [read_in_1, read_in_2, read_in_3]
+
+    for item in new_files: 
+        if len(item)>0: 
+            print("at least one worked!")
+
     # create a new column that is the year and quarter combined
-    pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
-    return (pgh_revenue_data,)
+    # pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
+    return
 
 
 @app.cell(hide_code=True)
