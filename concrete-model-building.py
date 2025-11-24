@@ -128,23 +128,26 @@ def _(mo, pl):
     except:
         read_in_2 = None
 
-    try:
-        read_in_3 = pl.read_csv(str(data_3))
-    except: 
-        read_in_3 = None
+    # try:
+    #     read_in_3 = pl.read_csv(str(data_3))
+    # except: 
+    #     read_in_3 = None
 
-    new_files = [read_in_1, read_in_2, read_in_3]
+    # new_files = [read_in_1, read_in_2, read_in_3]
 
-    for x in range(len(new_files)):
-        filename = f'read_in_{x}'
-        item = new_files[x]
-        if item is not None:
-            if len(item)>0: 
-                print("at least one worked!")
+    # for x in range(len(new_files)):
+    #     filename = f'read_in_{x}'
+    #     item = new_files[x]
+    #     if item is not None:
+    #         if len(item)>0: 
+    #             print("at least one worked!")
+
+    pgh_revenue_data = read_in_1.to_pandas()
+
 
     # create a new column that is the year and quarter combined
-    # pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
-    return
+    pgh_revenue_data['Year-Quarter'] = pgh_revenue_data['year'].astype(str) + '-' + pgh_revenue_data['quarter']
+    return (pgh_revenue_data,)
 
 
 @app.cell(hide_code=True)
